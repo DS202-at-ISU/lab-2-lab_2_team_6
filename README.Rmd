@@ -2,18 +2,142 @@
 output: github_document
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit the README.Rmd file -->
+# TL;DR
+
+ - Our group focused on Sale Price as the main variable of interest.
+
+- The distribution of sale prices is right-skewed, with most homes sold between $150,000–$300,000, a few low-value outliers under $50,000, and a handful of very high-value sales above $600,000.
+
+- We explored TotalLivingArea (sf) as a related variable. Its distribution is also right-skewed, with most homes under 2,000 sq ft and a few very large properties above 5,000 sq ft.
+
+- Scatterplots show a positive relationship between living area and sale price: generally, larger homes sell for more.
+
+- Outliers remain: some small homes with unusually high prices (likely due to land value or location) and some very large homes with surprisingly low prices (possibly condition or neighborhood effects).
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(classdata)
+
+
+library(dplyr)
+library(ggplot2)
+
 ```
 
-# Lab report #1
 
-Follow the instructions posted at https://ds202-at-isu.github.io/labs.html for the lab assignment. The work is meant to be finished during the lab time, but you have time until Monday evening to polish things.
 
-Include your answers in this document (Rmd file). Make sure that it knits properly (into the md file). Upload both the Rmd and the md file to your repository.  
+```{r}
 
-All submissions to the github repo will be automatically uploaded for grading once the due date is passed.
-Submit a link to your repository on Canvas (only one submission per team) to signal to the instructors that you are done with your submission.
+colnames(ames)
+str(ames)
+head(ames)
+max(ames$`Sale Price`)
+
+```
+
+As a team, we noticed the two categorical/numeric variables, for example, some numeric variables are Sale Price, Year Built, Acres, TotalLivingArea, and various others. The categorial variables, such as AC, Fireplace, and Multi Sale, indicate presence/absence features, while numeric variables capture continuous measures like price and footage. We predict the sales price to range from 0 to multiple millions of dollars.
+
+
+# Step 2
+
+- Our variable of interest is the sale price.
+
+# Step 3
+
+```{r}
+# Summary of Sale Price
+summary(ames$'Sale Price')
+
+library(ggplot2)
+salePriceGraph <- ggplot(ames, aes(x = `Sale Price`)) + 
+  geom_histogram(binwidth = 50000, fill = "skyblue", color = "black")
+
+print(salePriceGraph)
+
+```
+
+
+The histogram shows that most homes are clustered around or below $500,000. Some oddities are present, certain values are 0 and a few outliers were homes sold for millions but not very many overall.
+
+``` {r}
+boxplot(ames$`Sale Price`,
+        horizontal = TRUE,
+        main = "Boxplot of Sale Prices")
+```
+
+The boxplot shows the skewed distribution and as well as the outliers, which confirms what we saw in the histogram above.
+
+# Step 3
+
+``` {r}
+
+plot(ames$`TotalLivingArea (sf)`, ames$`Sale Price`,
+     main = "Sale Price vs. Living Area",
+     xlab = "Total Living Area (sf)",
+     ylab = "Sale Price",
+     pch  = 20,
+     col  = "darkgreen")
+
+```
+
+# Step 4
+
+  - Nathan Krieger
+  
+    ``` {r}
+    
+    ames_clean <- ames %>%
+      filter(!is.na(`Sale Price`), `Sale Price` > 0,
+             !is.na(`TotalLivingArea (sf)`), `TotalLivingArea (sf)` > 0)
+    
+   # Range of TotalLivingArea (sf)
+  range(ames_clean$`TotalLivingArea (sf)`)
+  
+  # Range of Sale Price
+  range(ames_clean$`Sale Price`)
+      
+    # Histogram of TotalLivingArea
+    ggplot(ames, aes(x = `TotalLivingArea (sf)`)) +
+      geom_histogram(binwidth = 250, fill = "lightgreen", color = "black") +
+      labs(title = "Distribution of Total Living Area",
+           x = "Total Living Area (sq ft)",
+           y = "Number of Homes") +
+      theme_minimal()
+    
+    # Scatterplot: Sale Price vs TotalLivingArea
+    ggplot(ames, aes(x = `TotalLivingArea (sf)`, y = `Sale Price`)) +
+      geom_point(alpha = 0.6, color = "steelblue") +
+      labs(title = "Sale Price vs Total Living Area",
+           x = "Total Living Area (sq ft)",
+           y = "Sale Price (USD)") +
+      theme_minimal()
+    
+    ```
+    - The var I chose is TotalLivingArea (sf). I cleaned the data by dropping all 0 and NaN values for SQFT and sale price. I found that the overall distribution of SQFT is about what is expected, a right skewed plot. There are some homes with SQFT near 6000, but most are below 2000. Based off of my second plot, there appears to be a loose correlation between SQFT and price. The plot is mostly flat, with some outliers that have very high prices but low SQFT. I assume these are houses/properties with lots of land.
+    
+    
+  - Phillip
+    ``` {r}
+    library(ggplot2)
+
+    # make a clean subset using base R
+    ames_clean <- subset(ames,
+                         !is.na(`Sale Price`) & `Sale Price` > 0 &
+                         !is.na(`TotalLivingArea (sf)`))
+    
+    livingAreaPlot <- ggplot(ames_clean,
+                             aes(x = `TotalLivingArea (sf)`, y = `Sale Price`)) +
+      geom_point(color = "darkgreen", alpha = 0.5, size = 1.5) +
+      labs(title = "Sale Price vs. Total Living Area",
+           x = "Total Living Area (sf)",
+           y = "Sale Price")
+    
+    print(livingAreaPlot)
+
+    ```
+    
+    Phillip Giametta: I chose the variable Total Living Area (sF), after dropping the 0/NA prices, we can see a clear positive relationship where larger homes sell for more money. We can see evidence of a few large homes selling for lower than expected, which could be for various reasons (location, condition etc).
+
+
